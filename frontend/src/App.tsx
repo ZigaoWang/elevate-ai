@@ -465,7 +465,13 @@ function App() {
             </div>
             <div className="min-h-[100px] prose prose-invert max-w-none">
               {finalContent ? (
-                <MarkdownContent>{finalContent}</MarkdownContent>
+                <>
+                  <MarkdownContent>{finalContent}</MarkdownContent>
+                  {/* Diff View */}
+                  {initialContent && finalContent && (
+                    <DiffView oldContent={initialContent} newContent={finalContent} />
+                  )}
+                </>
               ) : (
                 <div className="text-gray-500 italic">Enhanced content will appear here...</div>
               )}
