@@ -195,12 +195,12 @@ function App() {
   const [technicalFeedback, setTechnicalFeedback] = useState('')
   const [creativeFeedback, setCreativeFeedback] = useState('')
   const [finalContent, setFinalContent] = useState('')
-  const [technicalRatings, setTechnicalRatings] = useState<Ratings>({})
-  const [creativeRatings, setCreativeRatings] = useState<Ratings>({})
-  const [status, setStatus] = useState('')
   const [loading, setLoading] = useState(false)
+  const [technicalRatings, setTechnicalRatings] = useState<any>({})
+  const [creativeRatings, setCreativeRatings] = useState<any>({})
+  const [error, setError] = useState('')
   const ws = useRef<WebSocket | null>(null)
-  const currentSection = useRef<'initial' | 'technical' | 'creative' | 'final'>('initial')
+  const currentStep = useRef<'initial' | 'technical' | 'creative' | 'final'>('initial')
 
   useEffect(() => {
     return () => {
@@ -210,6 +210,85 @@ function App() {
     }
   }, [])
 
+  const handleMessage = (message: MessageEvent) => {
+    const data = JSON.parse(message.data)
+    if (data.type === 'content') {
+      try {
+        // Try to parse as JSON first
+        const jsonData = JSON.parse(data.content)
+        if (jsonData.feedback) {
+          // If it's a feedback message, just use the feedback text
+          if (currentStep.current === 'technical') {
+            setTechnicalFeedback(jsonData.feedback)
+          } else if (currentStep.current === 'creative') {
+            setCreativeFeedback(jsonData.feedback)
+          }
+        }
+      } catch (e) {
+        // If it's not JSON, handle as regular content
+        if (currentStep.current === 'initial') {
+          setInitialContent(prev => prev + data.content)
+        } else if (currentStep.current === 'technical') {
+          setTechnicalFeedback(prev => prev + data.content)
+        } else if (currentStep.current === 'creative') {
+          setCreativeFeedback(prev => prev + data.content)
+        } else if (currentStep.current === 'final') {
+          setFinalContent(prev => prev + data.content)
+        }
+      }
+    } else if (data.type === 'ratings') {
+      if (currentStep.current === 'technical') {
+        setTechnicalRatings(data.content)
+      } else if (currentStep.current === 'creative') {
+        setCreativeRatings(data.content)
+      }
+    } else if (data.type === 'error') {
+      setError(data.content)
+      setLoading(false)
+    } else if (data.type === 'done') {
+      handleNextStep()
+    }
+  }
+
+  const handleNextStep = () => {
+    if (currentStep.current === 'initial') {
+      currentStep.current = 'technical'
+      if (ws.current?.readyState === WebSocket.OPEN) {
+        ws.current.send(JSON.stringify({
+          messages: [
+            { role: "system", content: "You are a technical tutor. Please evaluate the content for structure, clarity, and technical accuracy." },
+            { role: "user", content: initialContent }
+          ]
+        }))
+      }
+    } else if (currentStep.current === 'technical') {
+      currentStep.current = 'creative'
+      if (ws.current?.readyState === WebSocket.OPEN) {
+        ws.current.send(JSON.stringify({
+          messages: [
+            { role: "system", content: "You are a creative tutor. Please assess the content for engagement, style, and impact." },
+            { role: "user", content: initialContent }
+          ]
+        }))
+      }
+    } else if (currentStep.current === 'creative') {
+      currentStep.current = 'final'
+      if (ws.current?.readyState === WebSocket.OPEN) {
+        ws.current.send(JSON.stringify({
+          messages: [
+            { role: "system", content: "You are a professional content editor. Based on the technical and creative feedback provided, improve the content while maintaining its core message. Focus on clarity, engagement, and impact." },
+            { role: "user", content: `Original Content: ${initialContent}\n\nTechnical Feedback: ${technicalFeedback}\n\nCreative Feedback: ${creativeFeedback}\n\nPlease improve the content based on this feedback.` }
+          ]
+        }))
+      }
+    } else if (currentStep.current === 'final') {
+      setLoading(false)
+      if (ws.current) {
+        ws.current.close()
+      }
+    }
+  }
+
   const generateContent = async () => {
     setLoading(true)
     setInitialContent('')
@@ -218,7 +297,7 @@ function App() {
     setFinalContent('')
     setTechnicalRatings({})
     setCreativeRatings({})
-    currentSection.current = 'initial'
+    currentStep.current = 'initial'
     
     if (ws.current) {
       ws.current.close()
@@ -233,81 +312,24 @@ function App() {
         }
       }
 
-      ws.current.onmessage = (event) => {
-        try {
-          const message: Message = JSON.parse(event.data)
-          
-          switch (message.type) {
-            case 'status':
-              setStatus(message.content || '')
-              if (message.content?.includes('technical')) {
-                currentSection.current = 'technical'
-              } else if (message.content?.includes('creative')) {
-                currentSection.current = 'creative'
-              } else if (message.content?.includes('final')) {
-                currentSection.current = 'final'
-              }
-              break
-              
-            case 'content':
-              switch (currentSection.current) {
-                case 'initial':
-                  setInitialContent(prev => prev + (message.content || ''))
-                  break
-                case 'technical':
-                  setTechnicalFeedback(prev => prev + (message.content || ''))
-                  break
-                case 'creative':
-                  setCreativeFeedback(prev => prev + (message.content || ''))
-                  break
-                case 'final':
-                  setFinalContent(prev => prev + (message.content || ''))
-                  break
-              }
-              break
-              
-            case 'ratings':
-              if (currentSection.current === 'technical') {
-                setTechnicalRatings(message.content)
-              } else if (currentSection.current === 'creative') {
-                setCreativeRatings(message.content)
-              }
-              break
-              
-            case 'done':
-              setLoading(false)
-              setStatus('')
-              break
-              
-            case 'error':
-              console.error('Error:', message.content)
-              setLoading(false)
-              setStatus(`Error: ${message.content}`)
-              break
-          }
-        } catch (error) {
-          console.error('Error parsing WebSocket message:', error)
-          setStatus('Error processing response')
-          setLoading(false)
-        }
-      }
+      ws.current.onmessage = handleMessage
 
       ws.current.onerror = (error) => {
         console.error('WebSocket error:', error)
-        setStatus('Connection error')
+        setError('Connection error')
         setLoading(false)
       }
 
       ws.current.onclose = () => {
         console.log('WebSocket closed')
         if (loading) {
-          setStatus('Connection closed')
+          setError('Connection closed')
           setLoading(false)
         }
       }
     } catch (error) {
       console.error('Error setting up WebSocket:', error)
-      setStatus('Failed to connect')
+      setError('Failed to connect')
       setLoading(false)
     }
   }
@@ -365,7 +387,7 @@ function App() {
             {loading ? (
               <div className="flex items-center justify-center space-x-2">
                 <div className="animate-spin rounded-full h-4 w-4 border-t-2 border-b-2 border-white"></div>
-                <span>{status || 'Generating...'}</span>
+                <span>{error || 'Generating...'}</span>
               </div>
             ) : (
               'Elevate Your Content'
@@ -403,8 +425,7 @@ function App() {
                     <RatingBar value={technicalRatings.completeness || 0} label="Completeness" color="bg-violet-500" />
                   </div>
                 )}
-                <div className="mt-6 p-4 bg-gray-900/50 rounded-lg border border-gray-700">
-                  <h3 className="text-lg font-medium text-gray-300 mb-2">Feedback</h3>
+                <div className="prose prose-invert max-w-none">
                   <MarkdownContent>{technicalFeedback}</MarkdownContent>
                 </div>
               </div>
@@ -423,8 +444,7 @@ function App() {
                     <RatingBar value={creativeRatings.innovation || 0} label="Innovation" color="bg-orange-500" />
                   </div>
                 )}
-                <div className="mt-6 p-4 bg-gray-900/50 rounded-lg border border-gray-700">
-                  <h3 className="text-lg font-medium text-gray-300 mb-2">Feedback</h3>
+                <div className="prose prose-invert max-w-none">
                   <MarkdownContent>{creativeFeedback}</MarkdownContent>
                 </div>
               </div>

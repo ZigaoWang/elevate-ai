@@ -42,15 +42,16 @@ TECHNICAL_SYSTEM_PROMPT = """You are a technical writing tutor. Analyze the text
 
 Provide a concise, focused feedback (max 2-3 sentences) that highlights the most important improvements needed.
 
-Your response should be in markdown format. Start with the ratings, followed by your feedback.
-Example:
-### Technical Analysis
-- **Clarity**: 8/10
-- **Structure**: 7/10
-- **Technical Accuracy**: 9/10
-- **Completeness**: 8/10
-
-Your feedback here in 2-3 sentences."""
+Respond in this exact JSON format (your feedback should be direct, no introductory phrases):
+{
+    "ratings": {
+        "clarity": X,
+        "structure": X,
+        "technical_accuracy": X,
+        "completeness": X
+    },
+    "feedback": "Your direct feedback here"
+}"""
 
 CREATIVE_SYSTEM_PROMPT = """You are a creative writing tutor. Analyze the text and provide ratings in the following categories:
 - Engagement (1-10): How engaging and captivating is the content?
@@ -60,15 +61,16 @@ CREATIVE_SYSTEM_PROMPT = """You are a creative writing tutor. Analyze the text a
 
 Provide a concise, focused feedback (max 2-3 sentences) that highlights the most important creative improvements needed.
 
-Your response should be in markdown format. Start with the ratings, followed by your feedback.
-Example:
-### Creative Analysis
-- **Engagement**: 8/10
-- **Style**: 7/10
-- **Impact**: 9/10
-- **Innovation**: 8/10
-
-Your feedback here in 2-3 sentences."""
+Respond in this exact JSON format (your feedback should be direct, no introductory phrases):
+{
+    "ratings": {
+        "engagement": X,
+        "style": X,
+        "impact": X,
+        "innovation": X
+    },
+    "feedback": "Your direct feedback here"
+}"""
 
 async def stream_completion(messages: List[Dict], websocket: WebSocket):
     try:
@@ -84,39 +86,42 @@ async def stream_completion(messages: List[Dict], websocket: WebSocket):
             if chunk.choices[0].delta.content:
                 content = chunk.choices[0].delta.content
                 collected_content += content
-                await websocket.send_json({
-                    "type": "content",
-                    "content": content
-                })
-        
-        # If this is feedback, try to parse the ratings
-        if any(prompt["content"] in [TECHNICAL_SYSTEM_PROMPT, CREATIVE_SYSTEM_PROMPT] for prompt in messages):
-            try:
-                # Extract ratings using regex
-                ratings = {}
-                if "Technical Analysis" in collected_content:
-                    matches = re.findall(r'\*\*(Clarity|Structure|Technical Accuracy|Completeness)\*\*: (\d+)/10', collected_content)
-                    ratings = {key.lower().replace(' ', '_'): int(value) for key, value in matches}
-                elif "Creative Analysis" in collected_content:
-                    matches = re.findall(r'\*\*(Engagement|Style|Impact|Innovation)\*\*: (\d+)/10', collected_content)
-                    ratings = {key.lower(): int(value) for key, value in matches}
-                
-                if ratings:
-                    await websocket.send_json({
-                        "type": "ratings",
-                        "content": ratings
-                    })
-                    
-                    # Extract feedback (everything after the ratings)
-                    feedback = re.split(r'\n\n', collected_content)[-1].strip()
+                # Don't stream raw JSON
+                if not any(prompt["content"] in [TECHNICAL_SYSTEM_PROMPT, CREATIVE_SYSTEM_PROMPT] for prompt in messages):
                     await websocket.send_json({
                         "type": "content",
-                        "content": feedback
+                        "content": content
                     })
-                    return {"ratings": ratings, "feedback": feedback}
-            except Exception as e:
-                print(f"Error parsing feedback: {e}")
+        
+        # If this is feedback, parse as JSON and send formatted
+        if any(prompt["content"] in [TECHNICAL_SYSTEM_PROMPT, CREATIVE_SYSTEM_PROMPT] for prompt in messages):
+            try:
+                json_content = json.loads(collected_content)
+                # Send ratings separately
+                await websocket.send_json({
+                    "type": "ratings",
+                    "content": json_content["ratings"]
+                })
+                # Send feedback text separately
+                await websocket.send_json({
+                    "type": "content",
+                    "content": json_content["feedback"]
+                })
+                
+            except json.JSONDecodeError as e:
+                print(f"JSON parsing error: {e}")
                 print(f"Raw content: {collected_content}")
+                await websocket.send_json({
+                    "type": "error",
+                    "content": "Error parsing feedback response"
+                })
+                return None
+        
+        # Always send done message after completion
+        await websocket.send_json({
+            "type": "done",
+            "content": "completed"
+        })
         
         return collected_content
     except Exception as e:
