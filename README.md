@@ -3,6 +3,8 @@
 ## Overview
 **Elevate AI** is an iterative AI refinement system where a generator AI creates content based on user prompts, and two tutor AIs provide structured feedback to improve the output. This process continues through multiple iterations, ensuring the content is refined to meet user expectations and quality standards.
 
+The concept was originally proposed by [Thomas Wu](https://github.com/TakumiBC/).
+
 ---
 
 ## Objectives
