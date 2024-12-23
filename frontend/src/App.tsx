@@ -124,6 +124,49 @@ function CopyButton({ text }: { text: string }) {
   );
 }
 
+function TextStats({ text }: { text: string }) {
+  const words = text.trim().split(/\s+/).length;
+  const chars = text.length;
+  
+  return (
+    <div className="flex gap-4 text-sm text-gray-400">
+      <span>{words.toLocaleString()} words</span>
+      <span>{chars.toLocaleString()} characters</span>
+    </div>
+  );
+}
+
+function LoadingDots({ step }: { step: string }) {
+  const loadingText = {
+    initial: "Generating initial content...",
+    technical: "Technical tutor analyzing content...",
+    creative: "Creative tutor reviewing style...",
+    final: "Crafting final improvements..."
+  }[step];
+
+  return (
+    <div className="flex flex-col items-center justify-center py-6">
+      <div className="flex items-center justify-center space-x-2 mb-3">
+        <div className="w-2 h-2 bg-blue-500 rounded-full animate-bounce [animation-delay:-0.3s]"></div>
+        <div className="w-2 h-2 bg-purple-500 rounded-full animate-bounce [animation-delay:-0.15s]"></div>
+        <div className="w-2 h-2 bg-pink-500 rounded-full animate-bounce"></div>
+      </div>
+      <span className="text-sm text-gray-400">{loadingText}</span>
+    </div>
+  );
+}
+
+function PlaceholderContent({ text }: { text: string }) {
+  return (
+    <div className="flex flex-col items-center justify-center py-8 text-gray-500">
+      <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 mb-3 opacity-50" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+      </svg>
+      <span className="text-sm italic">{text}</span>
+    </div>
+  );
+}
+
 function App() {
   const [prompt, setPrompt] = useState('')
   const [initialContent, setInitialContent] = useState('')
@@ -319,11 +362,17 @@ function App() {
               </div>
               {initialContent && <CopyButton text={initialContent} />}
             </div>
-            <div className="min-h-[100px] prose prose-invert max-w-none">
+            <div className="min-h-[100px] prose prose-invert max-w-none relative">
+              {loading && currentStep.current === 'initial' && <LoadingDots step="initial" />}
               {initialContent ? (
-                <MarkdownContent>{initialContent}</MarkdownContent>
-              ) : (
-                <div className="text-gray-500 italic">Generated content will appear here...</div>
+                <>
+                  <MarkdownContent>{initialContent}</MarkdownContent>
+                  <div className="mt-4 border-t border-gray-700 pt-4">
+                    <TextStats text={initialContent} />
+                  </div>
+                </>
+              ) : !loading && (
+                <PlaceholderContent text="Generated content will appear here..." />
               )}
             </div>
           </div>
@@ -339,7 +388,8 @@ function App() {
                 </div>
                 {technicalFeedback && <CopyButton text={technicalFeedback} />}
               </div>
-              <div className="min-h-[200px]">
+              <div className="min-h-[200px] relative">
+                {loading && currentStep.current === 'technical' && <LoadingDots step="technical" />}
                 {Object.keys(technicalRatings).length > 0 ? (
                   <div className="mb-6 space-y-4">
                     <RatingBar value={technicalRatings.clarity || 0} label="Clarity" color="bg-blue-500" />
@@ -347,7 +397,7 @@ function App() {
                     <RatingBar value={technicalRatings.technical_accuracy || 0} label="Technical Accuracy" color="bg-purple-500" />
                     <RatingBar value={technicalRatings.completeness || 0} label="Completeness" color="bg-violet-500" />
                   </div>
-                ) : (
+                ) : !loading && (
                   <div className="mb-6 space-y-4 opacity-50">
                     <RatingBar value={0} label="Clarity" color="bg-blue-500" />
                     <RatingBar value={0} label="Structure" color="bg-indigo-500" />
@@ -357,9 +407,14 @@ function App() {
                 )}
                 <div className="prose prose-invert max-w-none">
                   {technicalFeedback ? (
-                    <MarkdownContent>{technicalFeedback}</MarkdownContent>
-                  ) : (
-                    <div className="text-gray-500 italic">Technical feedback will appear here...</div>
+                    <>
+                      <MarkdownContent>{technicalFeedback}</MarkdownContent>
+                      <div className="mt-4 border-t border-gray-700 pt-4">
+                        <TextStats text={technicalFeedback} />
+                      </div>
+                    </>
+                  ) : !loading && (
+                    <PlaceholderContent text="Technical feedback will appear here..." />
                   )}
                 </div>
               </div>
@@ -374,7 +429,8 @@ function App() {
                 </div>
                 {creativeFeedback && <CopyButton text={creativeFeedback} />}
               </div>
-              <div className="min-h-[200px]">
+              <div className="min-h-[200px] relative">
+                {loading && currentStep.current === 'creative' && <LoadingDots step="creative" />}
                 {Object.keys(creativeRatings).length > 0 ? (
                   <div className="mb-6 space-y-4">
                     <RatingBar value={creativeRatings.engagement || 0} label="Engagement" color="bg-pink-500" />
@@ -382,7 +438,7 @@ function App() {
                     <RatingBar value={creativeRatings.impact || 0} label="Impact" color="bg-red-500" />
                     <RatingBar value={creativeRatings.innovation || 0} label="Innovation" color="bg-orange-500" />
                   </div>
-                ) : (
+                ) : !loading && (
                   <div className="mb-6 space-y-4 opacity-50">
                     <RatingBar value={0} label="Engagement" color="bg-pink-500" />
                     <RatingBar value={0} label="Style" color="bg-rose-500" />
@@ -392,9 +448,14 @@ function App() {
                 )}
                 <div className="prose prose-invert max-w-none">
                   {creativeFeedback ? (
-                    <MarkdownContent>{creativeFeedback}</MarkdownContent>
-                  ) : (
-                    <div className="text-gray-500 italic">Creative feedback will appear here...</div>
+                    <>
+                      <MarkdownContent>{creativeFeedback}</MarkdownContent>
+                      <div className="mt-4 border-t border-gray-700 pt-4">
+                        <TextStats text={creativeFeedback} />
+                      </div>
+                    </>
+                  ) : !loading && (
+                    <PlaceholderContent text="Creative feedback will appear here..." />
                   )}
                 </div>
               </div>
@@ -410,11 +471,17 @@ function App() {
               </div>
               {finalContent && <CopyButton text={finalContent} />}
             </div>
-            <div className="min-h-[100px] prose prose-invert max-w-none">
+            <div className="min-h-[100px] prose prose-invert max-w-none relative">
+              {loading && currentStep.current === 'final' && <LoadingDots step="final" />}
               {finalContent ? (
-                <MarkdownContent>{finalContent}</MarkdownContent>
-              ) : (
-                <div className="text-gray-500 italic">Enhanced content will appear here...</div>
+                <>
+                  <MarkdownContent>{finalContent}</MarkdownContent>
+                  <div className="mt-4 border-t border-gray-700 pt-4">
+                    <TextStats text={finalContent} />
+                  </div>
+                </>
+              ) : !loading && (
+                <PlaceholderContent text="Enhanced content will appear here..." />
               )}
             </div>
           </div>
