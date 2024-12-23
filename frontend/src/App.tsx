@@ -2,7 +2,6 @@ import { useState, useEffect, useRef } from 'react'
 import './App.css'
 import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
-import ReactDiffViewer from 'react-diff-viewer-continued'
 
 type Message = {
   type: 'status' | 'content' | 'error' | 'done' | 'ratings';
@@ -84,107 +83,6 @@ function MarkdownContent({ children }: { children: string }) {
       >
         {children}
       </ReactMarkdown>
-    </div>
-  )
-}
-
-function DiffView({ oldContent, newContent }: { oldContent: string; newContent: string }) {
-  const [showDiff, setShowDiff] = useState(false)
-
-  return (
-    <div>
-      <button
-        onClick={() => setShowDiff(true)}
-        className="mt-6 px-4 py-2 bg-gradient-to-r from-blue-500 to-purple-600 text-white rounded-lg hover:from-blue-600 hover:to-purple-700 transition duration-200 font-semibold shadow-lg flex items-center gap-2"
-      >
-        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-          <path fillRule="evenodd" d="M4 5a2 2 0 012-2h8a2 2 0 012 2v10a2 2 0 01-2 2H6a2 2 0 01-2-2V5zm9 1a1 1 0 10-2 0v6a1 1 0 102 0V6zm-4 1a1 1 0 10-2 0v4a1 1 0 102 0V7z" clipRule="evenodd" />
-        </svg>
-        View Changes
-      </button>
-      
-      {/* Full Screen Modal */}
-      {showDiff && (
-        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex flex-col">
-          {/* Modal Header */}
-          <div className="bg-gray-900 p-4 border-b border-gray-700 flex items-center justify-between">
-            <h2 className="text-xl font-semibold text-white flex items-center gap-2">
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-blue-400" viewBox="0 0 20 20" fill="currentColor">
-                <path fillRule="evenodd" d="M4 4a2 2 0 012-2h8a2 2 0 012 2v12a2 2 0 01-2 2H6a2 2 0 01-2-2V4zm2 0h8v12H6V4z" clipRule="evenodd" />
-              </svg>
-              Content Changes
-            </h2>
-            <button
-              onClick={() => setShowDiff(false)}
-              className="p-2 hover:bg-gray-800 rounded-lg transition-colors text-gray-400 hover:text-white"
-            >
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-              </svg>
-            </button>
-          </div>
-          
-          {/* Modal Content */}
-          <div className="flex-1 overflow-auto p-4">
-            <div className="h-full max-w-[90%] mx-auto">
-              <ReactDiffViewer
-                oldValue={oldContent}
-                newValue={newContent}
-                splitView={true}
-                useDarkTheme={true}
-                hideLineNumbers={false}
-                styles={{
-                  variables: {
-                    dark: {
-                      diffViewerBackground: 'transparent',
-                      diffViewerColor: '#fff',
-                      addedBackground: '#1e462d',
-                      addedColor: '#4ade80',
-                      removedBackground: '#462029',
-                      removedColor: '#ff8ba7',
-                      wordAddedBackground: '#2c5e3c',
-                      wordRemovedBackground: '#5e2c3c',
-                      codeFoldGutterBackground: 'transparent',
-                      codeFoldBackground: '#182130',
-                      emptyLineBackground: 'transparent',
-                    }
-                  },
-                  line: {
-                    fontSize: '1rem',
-                    lineHeight: '1.5'
-                  },
-                  content: {
-                    width: '50%'  // Set both sides to 50%
-                  },
-                  contentText: {
-                    width: '100%'  // Ensure text takes full width of its container
-                  },
-                  gutter: {
-                    width: '50px',  // Smaller gutter
-                    padding: '0 0.5rem'  // Reduced padding
-                  }
-                }}
-                leftTitle={
-                  <div className="flex items-center gap-2 text-gray-300 mb-2">
-                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                      <path fillRule="evenodd" d="M4 4a2 2 0 012-2h8a2 2 0 012 2v12a2 2 0 01-2 2H6a2 2 0 01-2-2V4zm2 0h8v12H6V4z" clipRule="evenodd" />
-                    </svg>
-                    Original Content
-                  </div>
-                }
-                rightTitle={
-                  <div className="flex items-center gap-2 text-green-400 mb-2">
-                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                      <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-                    </svg>
-                    Elevated Content
-                  </div>
-                }
-              />
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   )
 }
@@ -465,13 +363,7 @@ function App() {
             </div>
             <div className="min-h-[100px] prose prose-invert max-w-none">
               {finalContent ? (
-                <>
-                  <MarkdownContent>{finalContent}</MarkdownContent>
-                  {/* Diff View */}
-                  {initialContent && finalContent && (
-                    <DiffView oldContent={initialContent} newContent={finalContent} />
-                  )}
-                </>
+                <MarkdownContent>{finalContent}</MarkdownContent>
               ) : (
                 <div className="text-gray-500 italic">Enhanced content will appear here...</div>
               )}
