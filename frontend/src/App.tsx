@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from 'react'
 import './App.css'
 import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
+import ReactDiffViewer from 'react-diff-viewer-continued'
 
 type Message = {
   type: 'status' | 'content' | 'error' | 'done' | 'ratings';
@@ -83,6 +84,53 @@ function MarkdownContent({ children }: { children: string }) {
       >
         {children}
       </ReactMarkdown>
+    </div>
+  )
+}
+
+function DiffView({ oldContent, newContent }: { oldContent: string; newContent: string }) {
+  const [showDiff, setShowDiff] = useState(false)
+
+  return (
+    <div>
+      <button
+        onClick={() => setShowDiff(!showDiff)}
+        className="mb-4 px-4 py-2 bg-gradient-to-r from-blue-500 to-purple-600 text-white rounded-lg hover:from-blue-600 hover:to-purple-700 transition duration-200 font-semibold shadow-lg flex items-center gap-2"
+      >
+        <svg xmlns="http://www.w3.org/2000/svg" className={`h-5 w-5 transition-transform duration-200 ${showDiff ? 'rotate-180' : ''}`} viewBox="0 0 20 20" fill="currentColor">
+          <path fillRule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clipRule="evenodd" />
+        </svg>
+        {showDiff ? 'Hide Changes' : 'Show Changes'}
+      </button>
+      
+      {showDiff && (
+        <div className="mb-6 bg-gray-800/50 rounded-xl p-4 border border-gray-700">
+          <ReactDiffViewer
+            oldValue={oldContent}
+            newValue={newContent}
+            splitView={true}
+            useDarkTheme={true}
+            hideLineNumbers={false}
+            styles={{
+              variables: {
+                dark: {
+                  diffViewerBackground: 'transparent',
+                  diffViewerColor: '#fff',
+                  addedBackground: '#1e462d',
+                  addedColor: '#4ade80',
+                  removedBackground: '#462029',
+                  removedColor: '#ff8ba7',
+                  wordAddedBackground: '#2c5e3c',
+                  wordRemovedBackground: '#5e2c3c',
+                  codeFoldGutterBackground: 'transparent',
+                  codeFoldBackground: '#182130',
+                  emptyLineBackground: 'transparent',
+                }
+              }
+            }}
+          />
+        </div>
+      )}
     </div>
   )
 }
@@ -330,6 +378,11 @@ function App() {
                   <h2 className="text-2xl font-semibold text-green-400">Elevated Content</h2>
                 </div>
                 <MarkdownContent>{finalContent}</MarkdownContent>
+                
+                {/* Diff View */}
+                {initialContent && finalContent && (
+                  <DiffView oldContent={initialContent} newContent={finalContent} />
+                )}
               </div>
             </div>
           </div>
