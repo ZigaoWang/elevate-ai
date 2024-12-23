@@ -110,7 +110,7 @@ function DiffView({ oldContent, newContent }: { oldContent: string; newContent: 
           <div className="bg-gray-900 p-4 border-b border-gray-700 flex items-center justify-between">
             <h2 className="text-xl font-semibold text-white flex items-center gap-2">
               <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-blue-400" viewBox="0 0 20 20" fill="currentColor">
-                <path fillRule="evenodd" d="M4 2a2 2 0 012-2h8a2 2 0 012 2v12a2 2 0 01-2 2H6a2 2 0 01-2-2V4zm9 3a1 1 0 10-2 0v6a1 1 0 102 0V5zm-4 1a1 1 0 10-2 0v4a1 1 0 102 0V6z" clipRule="evenodd" />
+                <path fillRule="evenodd" d="M4 4a2 2 0 012-2h8a2 2 0 012 2v12a2 2 0 01-2 2H6a2 2 0 01-2-2V4zm2 0h8v12H6V4z" clipRule="evenodd" />
               </svg>
               Content Changes
             </h2>
@@ -338,135 +338,140 @@ function App() {
     <div className="min-h-screen w-full bg-gradient-to-br from-gray-900 to-gray-800 text-white">
       <div className="w-full min-h-screen px-4 py-8">
         {/* Header Section */}
-        <div className="max-w-4xl mx-auto text-center mb-12">
-          <h1 className="text-7xl font-bold mb-6 bg-gradient-to-r from-blue-400 via-purple-500 to-pink-500 bg-clip-text text-transparent">
+        <div className="max-w-4xl mx-auto mb-8">
+          <h1 className="text-4xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-purple-600 mb-4">
             Elevate AI
           </h1>
-          <p className="text-xl text-gray-300 mb-8">Transform your content with AI-powered refinement and expert analysis</p>
-          
-          {/* Process Steps */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
-            <ProcessStep 
-              number={1} 
-              title="Initial Generation" 
-              description="Your prompt is transformed into polished content by our advanced AI"
+          <p className="text-gray-400 text-lg">
+            Transform your content with AI-powered analysis and enhancement
+          </p>
+        </div>
+
+        {/* Input Section */}
+        <div className="max-w-4xl mx-auto mb-12">
+          <div className="bg-gray-800/50 p-6 rounded-xl shadow-xl border border-gray-700">
+            <textarea
+              className="w-full h-32 bg-gray-900/50 text-white p-4 rounded-lg border border-gray-700 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition duration-200 mb-4"
+              placeholder="Enter your content here..."
+              value={prompt}
+              onChange={(e) => setPrompt(e.target.value)}
             />
-            <ProcessStep 
-              number={2} 
-              title="Technical Analysis" 
-              description="Our technical tutor evaluates structure, clarity, and accuracy"
-            />
-            <ProcessStep 
-              number={3} 
-              title="Creative Review" 
-              description="Our creative tutor assesses engagement, style, and impact"
-            />
-            <ProcessStep 
-              number={4} 
-              title="Final Refinement" 
-              description="All feedback is incorporated into an elevated final version"
-            />
+            <button
+              className="w-full bg-gradient-to-r from-blue-500 to-purple-600 text-white py-3 px-6 rounded-lg font-semibold hover:from-blue-600 hover:to-purple-700 transition duration-200 flex items-center justify-center"
+              onClick={generateContent}
+              disabled={loading || !prompt.trim()}
+            >
+              {loading ? (
+                <div className="flex items-center justify-center space-x-2">
+                  <div className="animate-spin rounded-full h-4 w-4 border-t-2 border-b-2 border-white"></div>
+                  <span>{error || 'Generating...'}</span>
+                </div>
+              ) : (
+                'Elevate Your Content'
+              )}
+            </button>
           </div>
         </div>
-        
-        {/* Input Section */}
-        <div className="w-full max-w-4xl mx-auto mb-12">
-          <textarea
-            value={prompt}
-            onChange={(e) => setPrompt(e.target.value)}
-            className="w-full p-6 bg-gray-800/50 border border-gray-700 rounded-xl shadow-xl text-white placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-200"
-            placeholder="Enter your prompt here..."
-            rows={4}
-          />
-          <button
-            onClick={generateContent}
-            disabled={loading || !prompt}
-            className="mt-4 px-8 py-3 bg-gradient-to-r from-blue-500 to-purple-600 text-white rounded-lg hover:from-blue-600 hover:to-purple-700 disabled:opacity-50 transition duration-200 font-semibold shadow-lg w-full sm:w-auto relative overflow-hidden group"
-          >
-            <div className="absolute inset-0 w-full h-full bg-gradient-to-r from-blue-400 to-purple-500 opacity-0 group-hover:opacity-20 transition-opacity duration-300"></div>
-            {loading ? (
-              <div className="flex items-center justify-center space-x-2">
-                <div className="animate-spin rounded-full h-4 w-4 border-t-2 border-b-2 border-white"></div>
-                <span>{error || 'Generating...'}</span>
-              </div>
-            ) : (
-              'Elevate Your Content'
-            )}
-          </button>
-        </div>
 
-        {/* Results Section */}
-        {(initialContent || technicalFeedback || creativeFeedback || finalContent) && (
-          <div className="grid grid-cols-1 xl:grid-cols-3 gap-8">
-            {/* Initial Content */}
-            <div className="space-y-6">
-              <div className="bg-gray-800/50 p-6 rounded-xl shadow-xl border border-gray-700 transition duration-300 hover:border-blue-500">
-                <div className="flex items-center mb-4">
-                  <div className="w-8 h-8 rounded-full bg-blue-500 flex items-center justify-center mr-3">1</div>
-                  <h2 className="text-2xl font-semibold text-blue-400">Initial Content</h2>
-                </div>
-                <MarkdownContent>{initialContent}</MarkdownContent>
-              </div>
+        {/* Results Section - Vertical Layout */}
+        <div className="max-w-4xl mx-auto space-y-8">
+          {/* Initial Content */}
+          <div className="bg-gray-800/50 p-6 rounded-xl shadow-xl border border-gray-700 transition duration-300 hover:border-blue-500">
+            <div className="flex items-center mb-4">
+              <div className="w-8 h-8 rounded-full bg-blue-500 flex items-center justify-center mr-3">1</div>
+              <h2 className="text-2xl font-semibold text-blue-400">Initial Content</h2>
             </div>
+            <div className="min-h-[100px] prose prose-invert max-w-none">
+              {initialContent ? (
+                <MarkdownContent>{initialContent}</MarkdownContent>
+              ) : (
+                <div className="text-gray-500 italic">Generated content will appear here...</div>
+              )}
+            </div>
+          </div>
 
-            {/* Analysis Column */}
-            <div className="space-y-6">
-              {/* Technical Analysis */}
-              <div className="bg-gray-800/50 p-6 rounded-xl shadow-xl border border-gray-700 transition duration-300 hover:border-purple-500">
-                <div className="flex items-center mb-4">
-                  <div className="w-8 h-8 rounded-full bg-purple-500 flex items-center justify-center mr-3">2</div>
-                  <h2 className="text-2xl font-semibold text-purple-400">Technical Analysis</h2>
-                </div>
-                {Object.keys(technicalRatings).length > 0 && (
+          {/* Analysis Section - Side by Side */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+            {/* Technical Analysis */}
+            <div className="bg-gray-800/50 p-6 rounded-xl shadow-xl border border-gray-700 transition duration-300 hover:border-purple-500">
+              <div className="flex items-center mb-4">
+                <div className="w-8 h-8 rounded-full bg-purple-500 flex items-center justify-center mr-3">2</div>
+                <h2 className="text-2xl font-semibold text-purple-400">Technical Analysis</h2>
+              </div>
+              <div className="min-h-[200px]">
+                {Object.keys(technicalRatings).length > 0 ? (
                   <div className="mb-6 space-y-4">
                     <RatingBar value={technicalRatings.clarity || 0} label="Clarity" color="bg-blue-500" />
                     <RatingBar value={technicalRatings.structure || 0} label="Structure" color="bg-indigo-500" />
                     <RatingBar value={technicalRatings.technical_accuracy || 0} label="Technical Accuracy" color="bg-purple-500" />
                     <RatingBar value={technicalRatings.completeness || 0} label="Completeness" color="bg-violet-500" />
                   </div>
+                ) : (
+                  <div className="mb-6 space-y-4 opacity-50">
+                    <RatingBar value={0} label="Clarity" color="bg-blue-500" />
+                    <RatingBar value={0} label="Structure" color="bg-indigo-500" />
+                    <RatingBar value={0} label="Technical Accuracy" color="bg-purple-500" />
+                    <RatingBar value={0} label="Completeness" color="bg-violet-500" />
+                  </div>
                 )}
                 <div className="prose prose-invert max-w-none">
-                  <MarkdownContent>{technicalFeedback}</MarkdownContent>
+                  {technicalFeedback ? (
+                    <MarkdownContent>{technicalFeedback}</MarkdownContent>
+                  ) : (
+                    <div className="text-gray-500 italic">Technical feedback will appear here...</div>
+                  )}
                 </div>
               </div>
+            </div>
 
-              {/* Creative Analysis */}
-              <div className="bg-gray-800/50 p-6 rounded-xl shadow-xl border border-gray-700 transition duration-300 hover:border-pink-500">
-                <div className="flex items-center mb-4">
-                  <div className="w-8 h-8 rounded-full bg-pink-500 flex items-center justify-center mr-3">3</div>
-                  <h2 className="text-2xl font-semibold text-pink-400">Creative Analysis</h2>
-                </div>
-                {Object.keys(creativeRatings).length > 0 && (
+            {/* Creative Analysis */}
+            <div className="bg-gray-800/50 p-6 rounded-xl shadow-xl border border-gray-700 transition duration-300 hover:border-pink-500">
+              <div className="flex items-center mb-4">
+                <div className="w-8 h-8 rounded-full bg-pink-500 flex items-center justify-center mr-3">3</div>
+                <h2 className="text-2xl font-semibold text-pink-400">Creative Analysis</h2>
+              </div>
+              <div className="min-h-[200px]">
+                {Object.keys(creativeRatings).length > 0 ? (
                   <div className="mb-6 space-y-4">
                     <RatingBar value={creativeRatings.engagement || 0} label="Engagement" color="bg-pink-500" />
                     <RatingBar value={creativeRatings.style || 0} label="Style" color="bg-rose-500" />
                     <RatingBar value={creativeRatings.impact || 0} label="Impact" color="bg-red-500" />
                     <RatingBar value={creativeRatings.innovation || 0} label="Innovation" color="bg-orange-500" />
                   </div>
+                ) : (
+                  <div className="mb-6 space-y-4 opacity-50">
+                    <RatingBar value={0} label="Engagement" color="bg-pink-500" />
+                    <RatingBar value={0} label="Style" color="bg-rose-500" />
+                    <RatingBar value={0} label="Impact" color="bg-red-500" />
+                    <RatingBar value={0} label="Innovation" color="bg-orange-500" />
+                  </div>
                 )}
                 <div className="prose prose-invert max-w-none">
-                  <MarkdownContent>{creativeFeedback}</MarkdownContent>
+                  {creativeFeedback ? (
+                    <MarkdownContent>{creativeFeedback}</MarkdownContent>
+                  ) : (
+                    <div className="text-gray-500 italic">Creative feedback will appear here...</div>
+                  )}
                 </div>
-              </div>
-            </div>
-
-            {/* Final Content */}
-            <div className="space-y-6">
-              <div className="bg-gray-800/50 p-6 rounded-xl shadow-xl border border-gray-700 transition duration-300 hover:border-green-500 sticky top-4">
-                <div className="flex items-center mb-4">
-                  <div className="w-8 h-8 rounded-full bg-green-500 flex items-center justify-center mr-3">4</div>
-                  <h2 className="text-2xl font-semibold text-green-400">Elevated Content</h2>
-                </div>
-                <MarkdownContent>{finalContent}</MarkdownContent>
-                
-                {/* Diff View */}
-                {initialContent && finalContent && (
-                  <DiffView oldContent={initialContent} newContent={finalContent} />
-                )}
               </div>
             </div>
           </div>
-        )}
+
+          {/* Final Content */}
+          <div className="bg-gray-800/50 p-6 rounded-xl shadow-xl border border-gray-700 transition duration-300 hover:border-green-500">
+            <div className="flex items-center mb-4">
+              <div className="w-8 h-8 rounded-full bg-green-500 flex items-center justify-center mr-3">4</div>
+              <h2 className="text-2xl font-semibold text-green-400">Elevated Content</h2>
+            </div>
+            <div className="min-h-[100px] prose prose-invert max-w-none">
+              {finalContent ? (
+                <MarkdownContent>{finalContent}</MarkdownContent>
+              ) : (
+                <div className="text-gray-500 italic">Enhanced content will appear here...</div>
+              )}
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   )
