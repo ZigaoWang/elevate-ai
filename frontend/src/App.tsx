@@ -87,6 +87,43 @@ function MarkdownContent({ children }: { children: string }) {
   )
 }
 
+function CopyButton({ text }: { text: string }) {
+  const [copied, setCopied] = useState(false);
+
+  const handleCopy = async () => {
+    try {
+      await navigator.clipboard.writeText(text);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } catch (err) {
+      console.error('Failed to copy text:', err);
+    }
+  };
+
+  return (
+    <button
+      onClick={handleCopy}
+      className={`p-2 rounded-lg transition-all duration-200 ${
+        copied 
+          ? 'bg-green-500/20 text-green-400' 
+          : 'bg-gray-900/50 text-gray-400 hover:bg-gray-800/80 hover:text-white'
+      }`}
+      title="Copy to clipboard"
+    >
+      {copied ? (
+        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+          <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+        </svg>
+      ) : (
+        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+          <path d="M8 3a1 1 0 011-1h2a1 1 0 110 2H9a1 1 0 01-1-1z" />
+          <path d="M6 3a2 2 0 00-2 2v11a2 2 0 002 2h8a2 2 0 002-2V5a2 2 0 00-2-2 3 3 0 01-3 3H9a3 3 0 01-3-3z" />
+        </svg>
+      )}
+    </button>
+  );
+}
+
 function App() {
   const [prompt, setPrompt] = useState('')
   const [initialContent, setInitialContent] = useState('')
@@ -275,9 +312,12 @@ function App() {
         <div className="max-w-4xl mx-auto space-y-8">
           {/* Initial Content */}
           <div className="bg-gray-800/50 p-6 rounded-xl shadow-xl border border-gray-700 transition duration-300 hover:border-blue-500">
-            <div className="flex items-center mb-4">
-              <div className="w-8 h-8 rounded-full bg-blue-500 flex items-center justify-center mr-3">1</div>
-              <h2 className="text-2xl font-semibold text-blue-400">Initial Content</h2>
+            <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center">
+                <div className="w-8 h-8 rounded-full bg-blue-500 flex items-center justify-center mr-3">1</div>
+                <h2 className="text-2xl font-semibold text-blue-400">Initial Content</h2>
+              </div>
+              {initialContent && <CopyButton text={initialContent} />}
             </div>
             <div className="min-h-[100px] prose prose-invert max-w-none">
               {initialContent ? (
@@ -292,9 +332,12 @@ function App() {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
             {/* Technical Analysis */}
             <div className="bg-gray-800/50 p-6 rounded-xl shadow-xl border border-gray-700 transition duration-300 hover:border-purple-500">
-              <div className="flex items-center mb-4">
-                <div className="w-8 h-8 rounded-full bg-purple-500 flex items-center justify-center mr-3">2</div>
-                <h2 className="text-2xl font-semibold text-purple-400">Technical Analysis</h2>
+              <div className="flex items-center justify-between mb-4">
+                <div className="flex items-center">
+                  <div className="w-8 h-8 rounded-full bg-purple-500 flex items-center justify-center mr-3">2</div>
+                  <h2 className="text-2xl font-semibold text-purple-400">Technical Analysis</h2>
+                </div>
+                {technicalFeedback && <CopyButton text={technicalFeedback} />}
               </div>
               <div className="min-h-[200px]">
                 {Object.keys(technicalRatings).length > 0 ? (
@@ -324,9 +367,12 @@ function App() {
 
             {/* Creative Analysis */}
             <div className="bg-gray-800/50 p-6 rounded-xl shadow-xl border border-gray-700 transition duration-300 hover:border-pink-500">
-              <div className="flex items-center mb-4">
-                <div className="w-8 h-8 rounded-full bg-pink-500 flex items-center justify-center mr-3">3</div>
-                <h2 className="text-2xl font-semibold text-pink-400">Creative Analysis</h2>
+              <div className="flex items-center justify-between mb-4">
+                <div className="flex items-center">
+                  <div className="w-8 h-8 rounded-full bg-pink-500 flex items-center justify-center mr-3">3</div>
+                  <h2 className="text-2xl font-semibold text-pink-400">Creative Analysis</h2>
+                </div>
+                {creativeFeedback && <CopyButton text={creativeFeedback} />}
               </div>
               <div className="min-h-[200px]">
                 {Object.keys(creativeRatings).length > 0 ? (
@@ -357,9 +403,12 @@ function App() {
 
           {/* Final Content */}
           <div className="bg-gray-800/50 p-6 rounded-xl shadow-xl border border-gray-700 transition duration-300 hover:border-green-500">
-            <div className="flex items-center mb-4">
-              <div className="w-8 h-8 rounded-full bg-green-500 flex items-center justify-center mr-3">4</div>
-              <h2 className="text-2xl font-semibold text-green-400">Elevated Content</h2>
+            <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center">
+                <div className="w-8 h-8 rounded-full bg-green-500 flex items-center justify-center mr-3">4</div>
+                <h2 className="text-2xl font-semibold text-green-400">Elevated Content</h2>
+              </div>
+              {finalContent && <CopyButton text={finalContent} />}
             </div>
             <div className="min-h-[100px] prose prose-invert max-w-none">
               {finalContent ? (
