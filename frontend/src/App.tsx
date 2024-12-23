@@ -110,7 +110,7 @@ function DiffView({ oldContent, newContent }: { oldContent: string; newContent: 
           <div className="bg-gray-900 p-4 border-b border-gray-700 flex items-center justify-between">
             <h2 className="text-xl font-semibold text-white flex items-center gap-2">
               <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-blue-400" viewBox="0 0 20 20" fill="currentColor">
-                <path fillRule="evenodd" d="M4 2a2 2 0 00-2 2v12a2 2 0 002 2h12a2 2 0 002-2V4a2 2 0 00-2-2H4zm9 3a1 1 0 10-2 0v6a1 1 0 102 0V5zm-4 1a1 1 0 10-2 0v4a1 1 0 102 0V6z" clipRule="evenodd" />
+                <path fillRule="evenodd" d="M4 2a2 2 0 012-2h8a2 2 0 012 2v12a2 2 0 01-2 2H6a2 2 0 01-2-2V4zm9 3a1 1 0 10-2 0v6a1 1 0 102 0V5zm-4 1a1 1 0 10-2 0v4a1 1 0 102 0V6z" clipRule="evenodd" />
               </svg>
               Content Changes
             </h2>
@@ -396,14 +396,17 @@ function App() {
                   <h2 className="text-2xl font-semibold text-purple-400">Technical Analysis</h2>
                 </div>
                 {Object.keys(technicalRatings).length > 0 && (
-                  <div className="mb-6">
+                  <div className="mb-6 space-y-4">
                     <RatingBar value={technicalRatings.clarity || 0} label="Clarity" color="bg-blue-500" />
                     <RatingBar value={technicalRatings.structure || 0} label="Structure" color="bg-indigo-500" />
                     <RatingBar value={technicalRatings.technical_accuracy || 0} label="Technical Accuracy" color="bg-purple-500" />
                     <RatingBar value={technicalRatings.completeness || 0} label="Completeness" color="bg-violet-500" />
                   </div>
                 )}
-                <MarkdownContent>{technicalFeedback}</MarkdownContent>
+                <div className="mt-6 p-4 bg-gray-900/50 rounded-lg border border-gray-700">
+                  <h3 className="text-lg font-medium text-gray-300 mb-2">Feedback</h3>
+                  <MarkdownContent>{technicalFeedback}</MarkdownContent>
+                </div>
               </div>
 
               {/* Creative Analysis */}
@@ -413,14 +416,17 @@ function App() {
                   <h2 className="text-2xl font-semibold text-pink-400">Creative Analysis</h2>
                 </div>
                 {Object.keys(creativeRatings).length > 0 && (
-                  <div className="mb-6">
+                  <div className="mb-6 space-y-4">
                     <RatingBar value={creativeRatings.engagement || 0} label="Engagement" color="bg-pink-500" />
                     <RatingBar value={creativeRatings.style || 0} label="Style" color="bg-rose-500" />
                     <RatingBar value={creativeRatings.impact || 0} label="Impact" color="bg-red-500" />
                     <RatingBar value={creativeRatings.innovation || 0} label="Innovation" color="bg-orange-500" />
                   </div>
                 )}
-                <MarkdownContent>{creativeFeedback}</MarkdownContent>
+                <div className="mt-6 p-4 bg-gray-900/50 rounded-lg border border-gray-700">
+                  <h3 className="text-lg font-medium text-gray-300 mb-2">Feedback</h3>
+                  <MarkdownContent>{creativeFeedback}</MarkdownContent>
+                </div>
               </div>
             </div>
 
